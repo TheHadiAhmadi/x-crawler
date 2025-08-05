@@ -2,11 +2,10 @@ import env from '#start/env'
 import type { ApplicationService } from '@adonisjs/core/types'
 import { TwitterService } from '#services/twitter_service'
 import schedule from 'node-schedule'
-import Tweet from '#models/tweet';
-import User from '#models/user';
-import { DateTime } from 'luxon';
-import Hash from '@adonisjs/core/hash'
-import hash from '@adonisjs/core/services/hash';
+import Tweet from '#models/tweet'
+import User from '#models/user'
+import { DateTime } from 'luxon'
+import { createHash } from 'crypto'
 
 export default class ScheduleProvider {
   constructor(protected app: ApplicationService) {}
@@ -14,7 +13,9 @@ export default class ScheduleProvider {
   async saveTweet(tweet: any, currentUser: any) {
     //
 
-    const contentHash = await hash.make(`${tweet.timestamp}-${tweet.content}-${user.id}`)
+    const contentHash = createHash('SHA256')
+      .update(`${tweet.timestamp}-${tweet.content}-${tweet.username}`)
+      .digest('hex')
 
     const existingTweet = await Tweet.query().where('hash', contentHash).first()
     if (existingTweet) return
@@ -37,6 +38,8 @@ export default class ScheduleProvider {
 
     await Tweet.create({
       tweetId: tweet.tweetId,
+      hash: contentHash,
+      raw: tweet.raw,
       likes: tweet.likes,
       impressions: tweet.impressions,
       retweets: tweet.retweets,
@@ -47,10 +50,6 @@ export default class ScheduleProvider {
       url: tweet.url,
       // ... other
     })
-    // check if tweet exists based on hash (timestamp, content and username)
-    //
-    // if exists, skip
-    // otherwise save tweet
   }
 
   /**
@@ -61,7 +60,8 @@ export default class ScheduleProvider {
 
     console.log('start cron')
 
-    schedule.scheduleJob('0 * * * * *', async () => {
+    schedule.scheduleJob('0 * * * *', async () => {
+      console.log('run')
       const service = new TwitterService()
 
       const users = await User.query().limit(10)

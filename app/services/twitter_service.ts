@@ -1,6 +1,7 @@
 import puppeteer from 'puppeteer'
 import { randomInt } from 'crypto'
 import Account from '#models/account'
+import { DateTime } from 'luxon'
 
 const SESSION_COOKIE = 'auth_token=6e03b7708ad10ee990c9ccbd13f13535c010fa6b'
 
@@ -97,7 +98,7 @@ export class TwitterService {
   async getTweets(username: string, untilDate: string) {
     const browser = await puppeteer.launch({
       executablePath: '/usr/bin/google-chrome',
-      headless: false,
+      headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox'],
       // args: ['--no-sandbox']
     })
