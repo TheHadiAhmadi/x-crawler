@@ -64,6 +64,7 @@ export default class ScheduleProvider {
       console.log('run')
       const service = new TwitterService()
 
+      await service.initializeAccount()
       const users = await User.query().limit(10)
       const until = DateTime.now().minus({ minutes: 60 }).toISO()
 
