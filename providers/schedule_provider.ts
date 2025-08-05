@@ -59,7 +59,9 @@ export default class ScheduleProvider {
   async start() {
     if(env.get('START_TWITTER_CRON') !== '1') return
 
-    schedule.scheduleJob('fetch tweets', '* 0 * * *', async () => {
+    console.log('start cron')
+
+    schedule.scheduleJob('0 * * * * *', async () => {
       const service = new TwitterService()
 
       const users = await User.query().limit(10)
